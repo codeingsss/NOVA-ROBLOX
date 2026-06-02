@@ -5,7 +5,6 @@ local UIS = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local LocalPlayer = Players.LocalPlayer
 
--- UI 최상위 부모 GUI 생성
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "NovaCustom_UI_Library"
 if gethui then 
@@ -14,7 +13,6 @@ else
     ScreenGui.Parent = game:GetService("CoreGui") 
 end
 
--- 드래그 앤 드롭 함수
 local function makeDraggable(frame)
     local dragging, startPos, startFramePos
     frame.InputBegan:Connect(function(input)
@@ -40,7 +38,6 @@ local function makeDraggable(frame)
     end)
 end
 
--- 새로운 윈도우 창 생성
 function NovaUILib:CreateWindow(title, posX, sizeY)
     sizeY = sizeY or 300
     posX = posX or 50
@@ -57,7 +54,6 @@ function NovaUILib:CreateWindow(title, posX, sizeY)
     stroke.Color = Color3.fromRGB(0, 170, 255) 
     stroke.Thickness = 1.2
 
-    -- 상단 타이틀 바
     local titleBar = Instance.new("Frame", frame)
     titleBar.Size = UDim2.new(1, 0, 0, 28) 
     titleBar.BackgroundColor3 = Color3.fromRGB(32, 32, 36)
@@ -73,7 +69,6 @@ function NovaUILib:CreateWindow(title, posX, sizeY)
     titleText.Font = Enum.Font.GothamBold 
     titleText.TextSize = 12
 
-    -- 내부 스크롤 영역
     local container = Instance.new("ScrollingFrame", frame)
     container.Size = UDim2.new(1, -10, 1, -45) 
     container.Position = UDim2.new(0, 5, 0, 35)
@@ -94,7 +89,7 @@ function NovaUILib:CreateWindow(title, posX, sizeY)
     
     local WindowElements = {}
 
-    -- 1. 알약 토글 스위치
+    -- 알약 토글 스위치
     function WindowElements:CreateToggle(text, callback)
         local toggleRow = Instance.new("TextButton", container)
         toggleRow.Size = UDim2.new(1, -4, 0, 32) 
@@ -115,7 +110,6 @@ function NovaUILib:CreateWindow(title, posX, sizeY)
         label.TextSize = 11
         label.TextXAlignment = Enum.TextXAlignment.Left
 
-        -- 알약 모양 바 배경
         local switchBg = Instance.new("Frame", toggleRow)
         switchBg.Size = UDim2.new(0, 38, 0, 20)
         switchBg.Position = UDim2.new(1, -46, 0.5, -10)
@@ -124,7 +118,6 @@ function NovaUILib:CreateWindow(title, posX, sizeY)
         local bgCorner = Instance.new("UICorner", switchBg)
         bgCorner.CornerRadius = UDim.new(1, 0)
 
-        -- 화이트 원형 노브
         local knob = Instance.new("Frame", switchBg)
         knob.Size = UDim2.new(0, 14, 0, 14)
         knob.Position = UDim2.new(0, 3, 0.5, -7)
@@ -149,7 +142,7 @@ function NovaUILib:CreateWindow(title, posX, sizeY)
         end)
     end
 
-    -- 2. 클릭 애니메이션 버튼 (파란색 깜빡임 구현 완료)
+    -- 클릭 애니메이션 버튼
     function WindowElements:CreateButton(text, callback)
         local btn = Instance.new("TextButton", container)
         btn.Size = UDim2.new(1, -4, 0, 28) 
@@ -159,7 +152,8 @@ function NovaUILib:CreateWindow(title, posX, sizeY)
         btn.TextColor3 = Color3.new(1, 1, 1) 
         btn.Font = Enum.Font.GothamMedium 
         btn.TextSize = 11
-        
+        btn.AutoButtonColor = false -- 기본 색상 변경을 꺼서 커스텀 파란색 트윈이 작동하도록 수정
+
         local btnCorner = Instance.new("UICorner", btn) 
         btnCorner.CornerRadius = UDim.new(0, 5)
         
@@ -167,22 +161,24 @@ function NovaUILib:CreateWindow(title, posX, sizeY)
         bStroke.Color = Color3.fromRGB(60, 60, 65)
         bStroke.Thickness = 1
 
-        btn.MouseButton1Click:Connect(function()
-            -- 누르자마자 0.05초만에 파란색으로 변경 (강렬한 피드백)
-            local clickTween = TweenService:Create(btn, TweenInfo.new(0.05, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(0, 170, 255)})
-            -- 이후 0.25초 동안 스르륵 원래 색상으로 복귀
-            local releaseTween = TweenService:Create(btn, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = defaultColor})
-            
-            clickTween:Play()
-            clickTween.Completed:Connect(function()
-                releaseTween:Play()
-            end)
+        -- 마우스를 누르는 순간 즉시 파란색으로 변경
+        btn.MouseButton1Down:Connect(function()
+            TweenService:Create(btn, TweenInfo.new(0.05, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(0, 170, 255)}):Play()
+        end)
 
+        -- 마우스를 떼거나 영역을 나갈 때 원래 색상으로 복귀
+        local function resetColor()
+            TweenService:Create(btn, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = defaultColor}):Play()
+        end
+        btn.MouseButton1Up:Connect(resetColor)
+        btn.MouseLeave:Connect(resetColor)
+
+        btn.MouseButton1Click:Connect(function()
             if callback then callback() end
         end)
     end
 
-    -- 3. 슬라이더 바
+    -- 슬라이더 바
     function WindowElements:CreateSlider(text, min, max, default, callback)
         local sliderFrame = Instance.new("Frame", container) 
         sliderFrame.Size = UDim2.new(1, -4, 0, 42) 
@@ -244,7 +240,6 @@ function NovaUILib:CreateWindow(title, posX, sizeY)
     return WindowElements
 end
 
--- UI 단축키 토글 시스템 (RightShift)
 local uiVisible = true
 UIS.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
