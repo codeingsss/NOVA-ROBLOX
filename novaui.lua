@@ -2,6 +2,7 @@ local NovaUILib = {}
 
 local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService") -- 부드러운 애니메이션을 위해 추가
 local LocalPlayer = Players.LocalPlayer
 
 -- UI 가 존재할 최상위 부모 GUI 생성
@@ -94,25 +95,62 @@ function NovaUILib:CreateWindow(title, posX, sizeY)
     -- 내부 컴포넌트 추가를 위한 오브젝트 반환
     local WindowElements = {}
 
-    -- 1. 토글 버튼 추가 함수
+    -- 1. [리뉴얼] 이미지 스타일 비주얼 토글 스위치
     function WindowElements:CreateToggle(text, callback)
-        local btn = Instance.new("TextButton", container)
-        btn.Size = UDim2.new(1, -4, 0, 28) 
-        btn.BackgroundColor3 = Color3.fromRGB(40, 40, 44)
-        btn.Text = text .. " : OFF" 
-        btn.TextColor3 = Color3.new(0.9, 0.9, 0.9) 
-        btn.Font = Enum.Font.Gotham 
-        btn.TextSize = 11
+        -- 토글 전체를 감싸는 버튼 (가로 한 줄 클릭 인식)
+        local toggleRow = Instance.new("TextButton", container)
+        toggleRow.Size = UDim2.new(1, -4, 0, 30) 
+        toggleRow.BackgroundColor3 = Color3.fromRGB(34, 34, 38)
+        toggleRow.Text = "" 
+        toggleRow.AutoButtonColor = false
         
-        local btnCorner = Instance.new("UICorner", btn) 
-        btnCorner.CornerRadius = UDim.new(0, 5)
+        local rowCorner = Instance.new("UICorner", toggleRow) 
+        rowCorner.CornerRadius = UDim.new(0, 5)
+
+        -- 왼쪽 옵션 이름 텍스트
+        local label = Instance.new("TextLabel", toggleRow)
+        label.Size = UDim2.new(1, -55, 1, 0)
+        label.Position = UDim2.new(0, 8, 0, 0)
+        label.BackgroundTransparency = 1
+        label.Text = text
+        label.TextColor3 = Color3.fromRGB(225, 225, 225)
+        label.Font = Enum.Font.Gotham
+        label.TextSize = 11
+        label.TextXAlignment = Enum.TextXAlignment.Left
+
+        -- 오른쪽 알약 모양 배경 스위치 바 (보내주신 이미지 형태)
+        local switchBg = Instance.new("Frame", toggleRow)
+        switchBg.Size = UDim2.new(0, 36, 0, 18)
+        switchBg.Position = UDim2.new(1, -42, 0.5, -9)
+        switchBg.BackgroundColor3 = Color3.fromRGB(55, 55, 60) -- OFF 상태 배경색
+        
+        local bgCorner = Instance.new("UICorner", switchBg)
+        bgCorner.CornerRadius = UDim.new(1, 0) -- 완벽한 캡슐 알약 형태 구현
+
+        -- 스위치 내부의 동그란 노브 (Knob)
+        local knob = Instance.new("Frame", switchBg)
+        knob.Size = UDim2.new(0, 12, 0, 12)
+        knob.Position = UDim2.new(0, 3, 0.5, -6) -- OFF 상태일 때 좌측 정렬 기본값
+        knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        
+        local knobCorner = Instance.new("UICorner", knob)
+        knobCorner.CornerRadius = UDim.new(1, 0) -- 완벽한 원형 구현
 
         local state = false
-        btn.MouseButton1Click:Connect(function()
+        local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+
+        -- 클릭 이벤트 처리 및 부드러운 전환 애니메이션
+        toggleRow.MouseButton1Click:Connect(function()
             state = not state
-            btn.Text = text .. " : " .. (state and "ON" or "OFF")
-            btn.BackgroundColor3 = state and Color3.fromRGB(0, 170, 255) or Color3.fromRGB(40, 40, 44)
-            btn.TextColor3 = state and Color3.new(1, 1, 1) or Color3.new(0.9, 0.9, 0.9)
+            
+            -- ON/OFF 전환에 따른 목표 스타일 값 설정
+            local targetBgColor = state and Color3.fromRGB(0, 170, 255) or Color3.fromRGB(55, 55, 60)
+            local targetKnobPos = state and UDim2.new(1, -15, 0.5, -6) or UDim2.new(0, 3, 0.5, -6)
+            
+            -- 트윈 실행
+            TweenService:Create(switchBg, tweenInfo, {BackgroundColor3 = targetBgColor}):Play()
+            TweenService:Create(knob, tweenInfo, {Position = targetKnobPos}):Play()
+            
             if callback then callback(state) end
         end)
     end
