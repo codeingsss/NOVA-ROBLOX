@@ -89,7 +89,6 @@ function NovaUILib:CreateWindow(title, posX, sizeY)
     
     local WindowElements = {}
 
-    -- 알약 토글 스위치
     function WindowElements:CreateToggle(text, callback)
         local toggleRow = Instance.new("TextButton", container)
         toggleRow.Size = UDim2.new(1, -4, 0, 32) 
@@ -142,7 +141,6 @@ function NovaUILib:CreateWindow(title, posX, sizeY)
         end)
     end
 
-    -- 클릭 애니메이션 버튼
     function WindowElements:CreateButton(text, callback)
         local btn = Instance.new("TextButton", container)
         btn.Size = UDim2.new(1, -4, 0, 28) 
@@ -152,7 +150,7 @@ function NovaUILib:CreateWindow(title, posX, sizeY)
         btn.TextColor3 = Color3.new(1, 1, 1) 
         btn.Font = Enum.Font.GothamMedium 
         btn.TextSize = 11
-        btn.AutoButtonColor = false -- 기본 색상 변경을 꺼서 커스텀 파란색 트윈이 작동하도록 수정
+        btn.AutoButtonColor = false
 
         local btnCorner = Instance.new("UICorner", btn) 
         btnCorner.CornerRadius = UDim.new(0, 5)
@@ -161,12 +159,10 @@ function NovaUILib:CreateWindow(title, posX, sizeY)
         bStroke.Color = Color3.fromRGB(60, 60, 65)
         bStroke.Thickness = 1
 
-        -- 마우스를 누르는 순간 즉시 파란색으로 변경
         btn.MouseButton1Down:Connect(function()
             TweenService:Create(btn, TweenInfo.new(0.05, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(0, 170, 255)}):Play()
         end)
 
-        -- 마우스를 떼거나 영역을 나갈 때 원래 색상으로 복귀
         local function resetColor()
             TweenService:Create(btn, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = defaultColor}):Play()
         end
@@ -178,7 +174,6 @@ function NovaUILib:CreateWindow(title, posX, sizeY)
         end)
     end
 
-    -- 슬라이더 바
     function WindowElements:CreateSlider(text, min, max, default, callback)
         local sliderFrame = Instance.new("Frame", container) 
         sliderFrame.Size = UDim2.new(1, -4, 0, 42) 
